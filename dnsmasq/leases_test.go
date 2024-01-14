@@ -2,8 +2,10 @@ package dnsmasq
 
 import (
 	"github.com/stretchr/testify/assert"
+	"net"
 	"strings"
 	"testing"
+	"time"
 )
 
 var leasesText = `1704926889 00:e0:4c:68:01:b2 192.168.215.5 thd 01:00:e0:4c:68:01:b2
@@ -58,8 +60,30 @@ func TestReadLeases(t *testing.T) {
 	leases, err := ReadLeases(strings.NewReader(leasesText))
 	if assert.NoError(t, err) {
 		assert.Equal(t, 47, len(leases))
+		checkCount := 0
 		for _, lease := range leases {
 			t.Logf("%s %s %s %s %s", lease.ExpireTime, lease.MacAddress, lease.IPAddress, lease.Name, lease.ClientId)
+			switch lease.MacAddress.String() {
+			case "64:db:a0:0d:83:e0":
+				assert.Equal(t, "500-64dba00d83e0", lease.Name)
+				assert.Equal(t, time.Date(2024, 1, 10, 3, 6, 4, 0, time.Local), lease.ExpireTime)
+				assert.Equal(t, &net.IPAddr{net.IP([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 192, 168, 215, 88}), "ip"}, lease.IPAddress)
+				assert.Equal(t, "", lease.ClientId)
+				checkCount += 1
+			case "46:3a:5f:fe:ac:2b":
+				assert.Equal(t, "", lease.Name)
+				assert.Equal(t, time.Date(2024, 1, 10, 3, 48, 16, 0, time.Local), lease.ExpireTime)
+				assert.Equal(t, &net.IPAddr{net.IP([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 192, 168, 215, 200}), "ip"}, lease.IPAddress)
+				assert.Equal(t, "01:46:3a:5f:fe:ac:2b", lease.ClientId)
+				checkCount += 1
+			case "7c:78:b2:1b:d1:71":
+				assert.Equal(t, "", lease.Name)
+				assert.Equal(t, time.Date(2024, 1, 10, 0, 41, 6, 0, time.Local), lease.ExpireTime)
+				assert.Equal(t, &net.IPAddr{net.IP([]byte{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xff, 0xff, 192, 168, 215, 91}), "ip"}, lease.IPAddress)
+				assert.Equal(t, "", lease.ClientId)
+				checkCount += 1
+			}
 		}
+		assert.Equal(t, 3, checkCount)
 	}
 }

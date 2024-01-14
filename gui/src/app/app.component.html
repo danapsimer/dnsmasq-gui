@@ -1,0 +1,14 @@
+<div>
+  <mat-toolbar color="primary">
+    <button mat-icon-button class="menu-icon" aria-label="application menu" [matMenuTriggerFor]="mainMenu">
+      <mat-icon>menu</mat-icon>
+    </button>
+    <span>DNSMasq GUI</span>
+  </mat-toolbar>
+  <mat-menu #mainMenu="matMenu">
+    <button mat-menu-item href="/leases">Leases</button>
+  </mat-menu>
+  <div>
+    <router-outlet/>
+  </div>
+</div>
